@@ -99,8 +99,8 @@ LOOP FOREVER:
 1. Look at the git state: the current branch/commit we're on
 2. Tune `train_gpt_mlx.py` with an experimental idea by directly hacking the code.
 3. `git add autoresearch-mlx/train_gpt_mlx.py && git commit -m "experiment: <description>"` (never `git add -A` — this may be inside a larger repo)
-4. Run the experiment: `uv run train_gpt_mlx.py > run.log 2>&1` (redirect everything — do NOT use tee or let output flood your context)
-5. Read out the results: `grep "^val_bpb:\|^peak_vram_mb:" run.log`
+4. Run the experiment: `uv run train_gpt_mlx.py > logs/run.log 2>&1` (redirect everything — do NOT use tee or let output flood your context)
+5. Read out the results: `grep "^val_bpb:\|^peak_vram_mb:" logs/run.log`
 6. If the grep output is empty, the run crashed. Run `tail -n 50 run.log` to read the Python stack trace and attempt a fix. If you can't get things to work after more than a few attempts, give up.
 7. Record the results in the tsv
 8. If val_bpb improved (lower), `git add autoresearch-mlx/results.tsv && git commit --amend --no-edit` to include the log, advancing the branch
