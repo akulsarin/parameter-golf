@@ -58,6 +58,8 @@ final_int8_zlib_roundtrip_exact val_loss:4.07024353 val_bpb:2.41062748
 
 Note that the script runs for a fixed 10-minute training budget. On Apple Silicon the throughput, step count, and absolute val_bpb will differ from NVIDIA results — that's expected. Compare only against your own baseline on the same hardware.
 
+Also note that the reference flow is: train, serialize the model, quantize/compress it, reload the compressed artifact, then evaluate the round-tripped weights. The score that matters is the final final_int8_zlib_roundtrip_exact ... val_bpb, not the best pre-quant validation number during training.
+
 ```
 grep " val_bpb:\| bytes:" logs/run.log
 ```
