@@ -47,22 +47,19 @@ Each experiment runs on Apple Silicon via MLX. The training script runs for a **
 Once the script finishes it prints a summary like this:
 
 ```
----
-val_bpb:          2.534000
-training_seconds: 312.4
-total_seconds:    405.7
-peak_vram_mb:     27528.9
-mfu_percent:      0.00
-total_tokens_M:   39.8
-num_steps:        46
-num_params_M:     50.3
-depth:            8
+...
+step:200/200 val_loss:4.0689 val_bpb:2.4098 train_time:85520ms step_avg:427.60ms
+saved_model:logs/0b12cbbf-1e64-4314-bb00-de10b8bc7037_mlx_model.npz bytes:67212188
+serialized_model_int8_zlib:11261658 bytes (payload:17178912 raw_pickle:17188361 payload_ratio:3.91x)
+...
+final_int8_zlib_roundtrip val_loss:4.0702 val_bpb:2.4106 eval_time:772830ms
+final_int8_zlib_roundtrip_exact val_loss:4.07024353 val_bpb:2.41062748
 ```
 
-Note that the script runs for a fixed 5-minute training budget. On Apple Silicon the throughput, step count, and absolute val_bpb will differ from NVIDIA results — that's expected. Compare only against your own baseline on the same hardware.
+Note that the script runs for a fixed 10-minute training budget. On Apple Silicon the throughput, step count, and absolute val_bpb will differ from NVIDIA results — that's expected. Compare only against your own baseline on the same hardware.
 
 ```
-grep "^val_bpb:" run.log
+grep " val_bpb:\| bytes:" logs/run.log
 ```
 
 ## Logging results
@@ -72,22 +69,22 @@ When an experiment is done, log it to `results.tsv` (tab-separated, NOT comma-se
 The TSV has a header row and 5 columns:
 
 ```
-commit	val_bpb	memory_gb	status	description
+commit	val_bpb	total_size	status	description
 ```
 
 1. git commit hash (short, 7 chars)
 2. val_bpb achieved (e.g. 1.234567) — use 0.000000 for crashes
-3. peak memory in GB, round to .1f (e.g. 12.3 — divide peak_vram_mb by 1024) — use 0.0 for crashes
+3. total size: the peak memory usage in MB
 4. status: `keep`, `discard`, or `crash`
 5. short text description of what this experiment tried
 
 Example:
 
 ```
-commit	val_bpb	memory_gb	status	description
-383abb4	2.667000	26.9	keep	baseline
-909dd59	2.588904	26.9	keep	halve total batch size to 2^16
-4161af3	2.533728	26.9	keep	increase matrix LR to 0.04
+commit	val_bpb	total_size	status	description
+383abb4	2.667000	16.0	keep	baseline
+909dd59	2.588904	16.0	keep	halve total batch size to 2^16
+4161af3	2.533728	16.0	keep	increase matrix LR to 0.04
 ```
 
 ## The experiment loop
@@ -100,7 +97,7 @@ LOOP FOREVER:
 2. Tune `train_gpt_mlx.py` with an experimental idea by directly hacking the code.
 3. `git add autoresearch-mlx/train_gpt_mlx.py && git commit -m "experiment: <description>"` (never `git add -A` — this may be inside a larger repo)
 4. Run the experiment: `uv run train_gpt_mlx.py > logs/run.log 2>&1` (redirect everything — do NOT use tee or let output flood your context)
-5. Read out the results: `grep "^val_bpb:\|^peak_vram_mb:" logs/run.log`
+5. Read out the results: `grep " val_bpb:\| bytes:" logs/run.log`
 6. If the grep output is empty, the run crashed. Run `tail -n 50 run.log` to read the Python stack trace and attempt a fix. If you can't get things to work after more than a few attempts, give up.
 7. Record the results in the tsv
 8. If val_bpb improved (lower), `git add autoresearch-mlx/results.tsv && git commit --amend --no-edit` to include the log, advancing the branch
