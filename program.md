@@ -13,8 +13,8 @@ To set up a new experiment, work with the user to:
 3. **Read the in-scope files**: The repo is small. Read these files for full context:
    - `./README.md` — repository context.
    - `./data/README.md` — data prep, tokenizer, dataloader, evaluation.
-   - `train_gpt.py` — PyTorch-based. Model architecture, optimizer, training loop. Do not modify.
-   - `train_gpt_mlx.py` — MLX-based. The only file you modify. Model architecture, optimizer, training loop.
+   - `train_gpt.py` — PyTorch-based. Model architecture, hyperparameters, optimizer, training loop. Do not modify.
+   - `train_gpt_mlx.py` — MLX-based. The only file you modify. Model architecture, hyperparameters, optimizer, training loop.
 4. **Verify data exists**: Check that `./data` contains data shards and a tokenizer. If not, tell the human to run `uv run data/cached_challenge_fineweb.py --variant sp1024`.
 5. **Initialize results.tsv**: Create `results.tsv` with just the header row. The baseline will be recorded after the first run.
 6. **Confirm and go**: Confirm setup looks good.
@@ -34,7 +34,7 @@ Each experiment runs on Apple Silicon via MLX. The training script runs for a **
 - Install new packages or add dependencies. You can only use what's already in `pyproject.toml`.
 - Modify the evaluation harness in `train_gpt_mlx.py`.
 
-**The goal is simple: get the lowest val_bpb.** Since the time budget is fixed, you don't need to worry about training time — it's always 5 minutes. Everything is fair game: change the architecture, the optimizer, the hyperparameters, the batch size, the model size. The only constraint is that the code runs without crashing and finishes within the time budget.
+**The goal is simple: get the lowest val_bpb.** Since the time budget is fixed, you don't need to worry about training time — it's always ~10 minutes. Everything is fair game: change the architecture, the optimizer, the hyperparameters, the batch size, the model size. The only constraint is that the code runs without crashing and finishes within the time budget.
 
 **Total submission size** is a hard constraint. It MUST be <= 16MB.
 
@@ -108,7 +108,7 @@ LOOP FOREVER:
 
 The idea is that you are a completely autonomous researcher trying things out. If they work, keep. If they don't, discard. And you're advancing the branch so that you can iterate. If you feel like you're getting stuck in some way, you can rewind but you should probably do this very very sparingly (if ever).
 
-**Timeout**: Each experiment should take ~7 minutes total (5 min training + ~1 min compile/eval overhead on Apple Silicon). If a run exceeds 15 minutes, kill it and treat it as a failure (discard and revert).
+**Timeout**: Each training run should take ~10 minutes total (10 min training + ~1 min compile/eval overhead on Apple Silicon). If a run exceeds 30 minutes, kill it and treat it as a failure (discard and revert).
 
 **Crashes**: If a run crashes (OOM, or a bug, or etc.), use your judgment: If it's something dumb and easy to fix (e.g. a typo, a missing import), fix it and re-run. If the idea itself is fundamentally broken, just skip it, log "crash" as the status in the tsv, and move on.
 
